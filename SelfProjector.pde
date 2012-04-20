@@ -68,7 +68,7 @@ void draw() {
     
     for(int j=0; j<captureHeight; j++){
       for(int i=0; i<captureWidth; i++){
-        outFile.println(str(i) +"," + str(j) + ',' + red(depth.get(i,j)));    
+        outFile.println(str((float)i*xScale) +"," + str((float)j*yScale) + ',' + str(zScale*red(depth.get(i,j))));    
       }  
     }
     
