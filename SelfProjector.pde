@@ -15,6 +15,8 @@
   It doesn't fully utilise all the resolution of the depth image, if memory
   serves. If you want that, pop it in and request a pull - we'll happily add
   the code. 
+  
+  The video Sarat made using this can be found at http://vimeo.com/17821576
 
 *****************************************************************************
 
