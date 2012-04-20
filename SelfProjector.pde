@@ -20,6 +20,8 @@ float xScale = 2;
 float yScale = 1.6;
 float zScale = 10;
 boolean takeSnap = true;
+boolean saveCSV = false;
+int CSVctr = 0;
 
 float strokeWeightScale = 15;
 
@@ -49,6 +51,32 @@ void draw() {
   
   depth.pixels = NativeKinect.getDepthMap();      // set the PImage called depth to the depth map and update it
   depth.updatePixels();
+  
+  if(saveCSV){
+    
+    
+    String outFileName;
+    File fileObj;
+    PrintWriter outFile;
+    
+    do{
+      outFileName = dataPath("snap" + str(CSVctr++) +".csv");
+      fileObj = new File(outFileName);
+    } while(fileObj.exists());
+    
+    outFile = createWriter(outFileName);
+    
+    for(int j=0; j<captureHeight; j++){
+      for(int i=0; i<captureWidth; i++){
+        outFile.println(str(i) +"," + str(j) + ',' + red(depth.get(i,j)));    
+      }  
+    }
+    
+    outFile.flush();
+    outFile.close();
+    
+    saveCSV = false;    
+  }
   
   background(0);
 
@@ -147,7 +175,10 @@ void keyPressed(){    // Key commands for live adaption of the programm
     if(++step>120){
       step = 120;
     }  
-    break;    
+    break;  
+  case ' ':
+    saveCSV = true;
+    break;  
   case '0':
   case '1':
   case '2':
