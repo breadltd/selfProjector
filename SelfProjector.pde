@@ -1,92 +1,142 @@
-import shiffman.kinect.*;    // Calls Shiffman's kinect library
-import peasy.*;
-import org.processing.wiki.triangulate.*;    // Calls the triangulate library
+/****************************************************************************
 
+  BREAD ltd. Self Projector
+  
+  Stefan Dzisiewski-Smith and Sarat Babu
+  
+  December 2010
+
+*****************************************************************************
+
+  This isn't pretty code, nor is it efficient. It was a quick dash to get
+  something on screen to play with. Hopefully, you can do some fun stuff 
+  with it however.
+  
+  It doesn't fully utilise all the resolution of the depth image, if memory
+  serves. If you want that, pop it in and request a pull - we'll happily add
+  the code. 
+
+*****************************************************************************
+
+  Keyboard commands:
+  
+  1..4     sets mode
+  a        increases threshold
+  z        decreases threshold
+  x        increases stroke weight
+  s        decreases stroke weight
+  c        increases drawn resolution
+  d        decreases drawn resolution
+  [space]  saves a .csv snapshot to /data/snapXXXX.csv
+
+****************************************************************************/
+
+// the libraries that do all the heavy lifting
+import shiffman.kinect.*;    
+import peasy.*;
+import org.processing.wiki.triangulate.*;    
+
+// 3d object arrays
 ArrayList triangles = new ArrayList();
 ArrayList points = new ArrayList();
 
+// depth and visible images
 PImage img;
 PImage depth;
-int captureWidth = 640;
-int captureHeight = 480;
+
+// size constants for the Kinect's camera
+final int captureWidth = 640;
+final int captureHeight = 480;
+
+// global operation variables 
 int thresh = 20;
 int step = 48;
 int mode = 1;
-float lastX = 0;
-float lastY = 0;
-float lastZ = 0;
 
+// dimensional scales to give a visually pleasing output
 float xScale = 2;
 float yScale = 1.6;
 float zScale = 10;
-boolean takeSnap = true;
+float strokeWeightScale = 15;
+
+// save-to-csv variables
 boolean saveCSV = false;
 int CSVctr = 0;
-
-float strokeWeightScale = 15;
 
 PeasyCam cam;
 
 void setup() {
+  
+  // setup for 3D
   size(1024,768,P3D);
+  
+  // init the peasyCam and Kinect
   cam = new PeasyCam(this, 1280);
-  NativeKinect.init();    // initates the Kinect
-  img = createImage(captureWidth,captureHeight,RGB);    // create two PImages, captureWidth x captureHeight each in RBG colourspace
+  NativeKinect.init(); 
+  
+  // initialise the images for the depth and visible
+  img = createImage(captureWidth,captureHeight,RGB);    
   depth = createImage(captureWidth,captureHeight,RGB);
 
 }
 
 
 void draw() {  
-  NativeKinect.update();   // ask the Kinect for the latest frame
+  
+  // ask the Kinect for the latest frame
+  NativeKinect.update();   
+  
+  // translate to around the centre for drawing
   translate(-1280 / 2,-480/2); 
-  takeSnap = true;
-  if(!takeSnap){
-    return;  
-  }
   
   
-  img.pixels = NativeKinect.getPixels();    // set the PImage called img to the Kinect's output
-  img.updatePixels();    // refresh the image so it draws properly
+  img.pixels = NativeKinect.getPixels(); // visible light
+  img.updatePixels();    // update the image so its data is valid
   
-  depth.pixels = NativeKinect.getDepthMap();      // set the PImage called depth to the depth map and update it
-  depth.updatePixels();
+  depth.pixels = NativeKinect.getDepthMap(); // depth
+  depth.updatePixels();  // update the image so its data is valid
   
+  // CSV output code
   if(saveCSV){
-    
     
     String outFileName;
     File fileObj;
     PrintWriter outFile;
     
+    // find a sequential filename that doesn't already exist to write to
     do{
-      outFileName = dataPath("snap" + str(CSVctr++) +".csv");
+      outFileName = dataPath("snap" + nf(CSVctr++,4) +".csv");
       fileObj = new File(outFileName);
     } while(fileObj.exists());
     
+    // when we've found one, create a handle to it
     outFile = createWriter(outFileName);
     
+    // iterate through the depth image and write a scaled output triplet
     for(int j=0; j<captureHeight; j++){
       for(int i=0; i<captureWidth; i++){
         outFile.println(str((float)i*xScale) +"," + str((float)j*yScale) + ',' + str(zScale*red(depth.get(i,j))));    
       }  
     }
     
+    // flush the changes and close the file
     outFile.flush();
     outFile.close();
     
+    // reset the save flag
     saveCSV = false;    
   }
   
+  // black background - we're designers
   background(0);
 
-  switch(mode){    //Setup to call different modes
+  switch(mode){    
     
     case 1:    // Basic mode simply plots points
     for(int xx=0; xx<captureWidth; xx+=step){
       for(int yy=0; yy<captureHeight; yy+=step){
         float thisDepth = red(depth.get(xx,yy));
-        if(thisDepth >= thresh){    // thresh variable allows you to remove point from the furthest point
+        if(thisDepth >= thresh){    // only draw points closer than the threshold level
             stroke(255,255,255);
             strokeWeight(2);
             point(xx*xScale, yy*yScale, thisDepth*zScale);    // additional scale factors required to space out the points from the kinect
@@ -140,8 +190,15 @@ void draw() {
         }
   
       endShape();
+      break;
+      
+    default:
+    
+      // invalid mode selected, but don't whinge about it...
+    
+      break;
     }  
-  takeSnap = false;
+
 }
 
 void keyPressed(){    // Key commands for live adaption of the programm
@@ -177,7 +234,7 @@ void keyPressed(){    // Key commands for live adaption of the programm
     }  
     break;  
   case ' ':
-    saveCSV = true;
+    saveCSV = true; 
     break;  
   case '0':
   case '1':
