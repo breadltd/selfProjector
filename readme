@@ -1,0 +1,9 @@
+SelfProjector.pde is the processing code which does all the capture and display work. It is dependent on:
+
+* the Shiffman Kinect library
+* the Peasycam library
+* the org.processing.wiki library
+
+so make sure you have these installed and recognised by Processing before you get started.
+
+Kinect2RhinoFilter.gh is a Grasshopper for Rhino filter and reads CSV files output by SelfProjector. It allows you to filter the number of points, adapt the depth mapping etc.
