@@ -194,6 +194,20 @@ void draw() {
       endShape();
       break;
       
+    case 4:  // kinect depth image does not line up with visible light image
+      for(int xx=0; xx<captureWidth; xx+=step){
+        for(int yy=0; yy<captureHeight; yy+=step){
+          float thisDepth = red(depth.get(xx,yy));
+          if(thisDepth >= thresh){    // only draw points closer than the threshold level
+              //stroke(255,255,255);
+              stroke(red(img.get(xx,yy)), green(img.get(xx,yy)), blue(img.get(xx,yy)));
+              strokeWeight(step);
+              point(xx*xScale, yy*yScale, thisDepth*zScale);    // additional scale factors required to space out the points from the kinect
+          }
+        }  
+      }
+      break;
+      
     default:
     
       // invalid mode selected, but don't whinge about it...
